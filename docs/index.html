@@ -2190,7 +2190,7 @@ for policy decisions.</p>
 </div>
 </div>
 <div id="assumption-6-normality-of-residuals" class="section level2">
-<h2>6.6 Assumption 6: Normality of Residuals</h2>
+<h2>7.6 Assumption 6: Normality of Residuals</h2>
 <div id="business-problem-9" class="section level3">
 <h3>Business Problem</h3>
 <blockquote>
@@ -2243,54 +2243,52 @@ sound when evaluating how financial access drives female
 entrepreneurship across states.</p>
 </div>
 </div>
-<div id="assumption-7-no-endogeneity-influential-observations" class="section level2">
-<h2>6.7 Assumption 7: No Endogeneity (Influential Observations)</h2>
+<div id="assumption-7-exogeneity-influential-observations" class="section level2">
+<h2>7.7 Assumption 7: Exogeneity (Influential Observations)</h2>
 <div id="business-problem-10" class="section level3">
 <h3>Business Problem</h3>
 <blockquote>
-<p>Some states may behave <em>too differently</em> from the rest — for
-example, a highly developed state like Tamil Nadu or a financially
-excluded state like Bihar.<br />
-If these states exert an unusually large influence on the regression
-line, they can distort our results and create <strong>false
-conclusions</strong> about the impact of Financial Inclusion on Female
-Entrepreneurship.</p>
+<p>Ensuring exogeneity means verifying that the unexplained part of
+Female Entrepreneurship (the residuals) is not systematically related to
+Financial Inclusion or other predictors. If this condition fails:The
+model becomes biased due to missing factors or reverse causality.FII
+would appear impactful even if driven by hidden influences.Policy
+conclusions about financial inclusion would be unreliable</p>
 </blockquote>
-<p>Cook’s Distance helps us detect such influential observations.</p>
-<pre class="r"><code># Cook&#39;s Distance
-cooks_d &lt;- cooks.distance(model_m3)
-threshold_cook &lt;- 4 / nrow(df_2024)
-influential_indices &lt;- which(cooks_d &gt; threshold_cook)
+<p>The Ljung–Box test checks whether the residuals behave like white
+noise, confirming that no such hidden correlation exists.</p>
+<pre class="r"><code># Ljung Box Test
+res &lt;- residuals(model_m3)
+exog_test &lt;- Box.test(res, lag = 1, type = &quot;Ljung-Box&quot;)
 
-if (length(influential_indices) &gt; 0) {
-  cat(&quot;Influential observations detected:\n&quot;)
-  print(df_2024[influential_indices, c(&quot;State_UT&quot;, &quot;FEI&quot;, &quot;FII&quot;)])
+# 4. Print result
+print(exog_test)</code></pre>
+<pre><code>## 
+##  Box-Ljung test
+## 
+## data:  res
+## X-squared = 0.61286, df = 1, p-value = 0.4337</code></pre>
+<pre class="r"><code># 5. Interpretation message
+if (exog_test$p.value &gt; 0.05) {
+  cat(&quot;\n✓ PASS: No autocorrelation detected.  
+       Residuals behave like white noise → supports exogeneity.\n&quot;)
 } else {
-  cat(&quot;✓ PASS: No influential outliers detected\n&quot;)
+  cat(&quot;\n✗ WARNING: Autocorrelation detected.  
+       Exogeneity may be violated; consider adding missing variables.\n&quot;)
 }</code></pre>
-<pre><code>## Influential observations detected:
-##      State_UT   FEI   FII
-## 4       Assam 12.80 26.87
-## 5       Bihar 34.04 53.47
-## 10      Delhi 18.08  8.14
-## 32 Tamil Nadu 81.73 61.48</code></pre>
+<pre><code>## 
+## ✓ PASS: No autocorrelation detected.  
+##        Residuals behave like white noise → supports exogeneity.</code></pre>
 </div>
 <div id="insights-influential-observations" class="section level3">
 <h3>Insights (Influential Observations)</h3>
 <ul>
-<li><strong>Detected Influential States:</strong> Assam, Bihar, Delhi,
-Tamil Nadu — these states significantly impact the regression
-slope.</li>
-<li><strong>Why it matters:</strong> These states may have unique
-socio-economic structures (large metros, extremely low/high inclusion)
-that don’t represent typical Indian patterns.</li>
-<li><strong>Next Step:</strong> Investigate whether these are:
-<ul>
-<li>Data-entry issues,</li>
-<li>Structural outliers (e.g., Delhi’s urban bias),</li>
-<li>Or valid but unique cases requiring separate policy
-interpretation.</li>
-</ul></li>
+<li><p><strong>No autocorrelation detected</strong> (p = 0.4337 &gt;
+0.05)</p></li>
+<li><p><strong>Supports exogeneity</strong> → errors are not correlated
+with Financial Inclusion or other regressors.</p></li>
+<li><p><strong>OLS estimates</strong> are unbiased and consistent,
+strengthening the validity of our findings.</p></li>
 </ul>
 </div>
 <div id="relevance-to-our-model-6" class="section level3">
